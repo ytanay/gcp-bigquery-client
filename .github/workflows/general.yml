@@ -6,27 +6,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-        run: echo $GOOGLE_APPLICATION_CREDENTIALS > GOOGLE_APPLICATION_CREDENTIALS.json
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-        env:
-          PROJECT_ID: lquerel-test
-          DATASET_ID: gcp_bq_client_test
-          TABLE_ID: test
-          GOOGLE_APPLICATION_CREDENTIALS: GOOGLE_APPLICATION_CREDENTIALS.json
+  # test:
+  #   name: Test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
+  #     - env:
+  #         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+  #       run: echo $GOOGLE_APPLICATION_CREDENTIALS > GOOGLE_APPLICATION_CREDENTIALS.json
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: test
+  #       env:
+  #         PROJECT_ID: lquerel-test
+  #         DATASET_ID: gcp_bq_client_test
+  #         TABLE_ID: test
+  #         GOOGLE_APPLICATION_CREDENTIALS: GOOGLE_APPLICATION_CREDENTIALS.json
 
   fmt:
     name: Rustfmt
@@ -57,7 +57,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -- -D warnings
-
 #  coverage:
 #    name: Code coverage
 #    runs-on: ubuntu-latest

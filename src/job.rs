@@ -129,6 +129,59 @@ impl JobApi {
     }
 
     /// Runs a BigQuery SQL query, paginating through all the results synchronously.
+    /// # Arguments
+    /// * `project_id`- Project ID of the query request.
+    /// * `query` - The initial query configuration that is submitted when the job is inserted.
+    /// * `page_size` - The size of each page fetched. By default, this is set to `None`, and the limit is 10 MB of
+    /// rows instead.
+    /// returns a result set of query response
+    pub fn query_all_result_set<'a>(
+        &'a self,
+        project_id: &'a str,
+        query: JobConfigurationQuery,
+        page_size: Option<i32>,
+    ) -> impl Stream<Item = Result<ResultSet, BQError>> + 'a {
+        stream! {
+            let job = Job {
+                configuration: Some(JobConfiguration {
+                    dry_run: Some(false),
+                    query:   Some(query),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+
+            let job = self.insert(project_id, job).await?;
+
+            if let Some(ref job_id) = job.job_reference.and_then(|r| r.job_id) {
+                let mut page_token: Option<String> = None;
+                loop {
+                    let qr = self
+                        .get_query_results(
+                            project_id,
+                            job_id,
+                            GetQueryResultsParameters {
+                                page_token,
+                                max_results: page_size,
+                                ..Default::default()
+                            },
+                        )
+                        .await?;
+
+                    // Rows is present when the query finishes successfully.
+                    let rs = ResultSet::new(QueryResponse::from(qr.clone()));
+                    yield Ok(rs);
+
+                    page_token = match qr.page_token {
+                        None => break,
+                        f => f,
+                    };
+                }
+            }
+        }
+    }
+
+    /// Runs a BigQuery SQL query, paginating through all the results synchronously.
     /// Use this function when location of the job differs from the default value (US)
     /// # Arguments
     /// * `project_id`- Project ID of the query request.
